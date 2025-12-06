@@ -3687,7 +3687,7 @@ MarioWorld MarioWorld_New(char* path_lvl,char* path_blocks,char* path_entities,c
 	mw.tv = TransformedView_New((Vec2){ GetWidth(),GetHeight() });
 	TransformedView_Zoom(&mw.tv,(Vec2){ 0.05f,0.05f });
 	//TransformedView_Offset(&tv,(Vec2){ -0.5f,0.0f });
-	TransformedView_Focus(&mw.tv,&mw.mario.e->r.p);
+	TransformedView_Focus(&mw.tv,&mw.mario.e->r.p,mw.mario.e->r.d);
 
 	mw.ap = AudioPlayer_New();
 
