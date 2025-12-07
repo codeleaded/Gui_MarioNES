@@ -347,7 +347,7 @@ EntityAtlas EntityAtlas_New(
 }
 EntityAtlas EntityAtlas_Null(){
 	EntityAtlas ea;
-	ea.atlas = Sprite_None();
+	ea.atlas = Sprite_Null();
 	ea.cx = 0U;
 	ea.cy = 0U;
 	ea.Update = NULL;
