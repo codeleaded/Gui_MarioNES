@@ -171,6 +171,7 @@
 #define MARIO_VEL_JP 		            17.5f
 #define MARIO_VEL_DEAD 	                25.0f
 #define MARIO_VEL_MUL 		            3.0f
+#define MARIO_BLOCK_DESTROYSPEED	    (MARIO_VEL_JP + 1.0f)
 
 
 typedef struct MarioWorld {
@@ -2400,7 +2401,7 @@ void Mario_Stamp(Mario* m){
 			m->e.v.y = MARIO_VEL_JP;
 		}
 	}else{
-		if(m->stamp) m->e.v.x = 0.0f;
+		//if(m->stamp) m->e.v.x = 0.0f;
 	}
 }
 void Mario_Respawn(Mario* m,Vec2 spawn){
@@ -2412,6 +2413,13 @@ void Mario_Respawn(Mario* m,Vec2 spawn){
 	m->e.a.x = 0.0f;
 }
 void Mario_Update(Mario* m,World* w,float t){
+	if(m->slide && m->e.v.x == 0.0f){
+		m->slide = ENTITY_FALSE;
+	}
+	if(m->ground && m->stamp && m->e.v.x != 0.0f){
+		m->stamp = ENTITY_FALSE;
+	}
+
     m->e.a.x = F32_Clamp(m->e.a.x,-MARIO_ACC_MAX,MARIO_ACC_MAX);
 	if(m->ground) 	m->e.v.x = F32_Clamp(m->e.v.x,-MARIO_VEL_MAX_GRD,MARIO_VEL_MAX_GRD);
 	else			m->e.v.x = F32_Clamp(m->e.v.x,-MARIO_VEL_MAX_AIR,MARIO_VEL_MAX_AIR);
@@ -2530,17 +2538,12 @@ char Mario_IsSolid(Mario* m,World* w,unsigned int x,unsigned int y,Side s){
 void Mario_Collision(Mario* m,World* w,unsigned int x,unsigned int y,Side s){
 	if(m->dead) return;
 	
-	if(s==SIDE_TOP && m->e.v.y>0.0f) 			m->e.v.y = 0.0f;
-	else if(s==SIDE_BOTTOM && m->e.v.y<0.0f) 	m->e.v.y = 0.0f;
-	else if(s==SIDE_LEFT && m->e.v.x>0.0f) 		m->e.v.x = 0.0f;
-	else if(s==SIDE_RIGHT && m->e.v.x<0.0f) 	m->e.v.x = 0.0f;
-
 	Block b = World_Get(w,x,y);
 	
     if(s==SIDE_TOP)
         m->ground = FIGURE_TRUE;
 
-	if(s==SIDE_BOTTOM || (s==SIDE_TOP && m->stamp && m->e.v.x==0.0f)){
+	if(s==SIDE_BOTTOM || (s==SIDE_TOP && m->stamp && m->e.v.x==0.0f && F32_Abs(m->e.v.y)>=MARIO_BLOCK_DESTROYSPEED)){
 		if(b==BLOCK_BRICK){
 			AudioPlayer_Add(&((MarioWorld*)w)->ap,"./data/Sound/Breakblock.wav");
 			World_Set(w,x,y,BLOCK_NONE);
@@ -2559,6 +2562,11 @@ void Mario_Collision(Mario* m,World* w,unsigned int x,unsigned int y,Side s){
 			World_Set(w,x,y-1,BLOCK_SUPER_STAR);
 		}
 	}
+	
+	if(s==SIDE_TOP && m->e.v.y>0.0f) 			m->e.v.y = 0.0f;
+	else if(s==SIDE_BOTTOM && m->e.v.y<0.0f) 	m->e.v.y = 0.0f;
+	else if(s==SIDE_LEFT && m->e.v.x>0.0f) 		m->e.v.x = 0.0f;
+	else if(s==SIDE_RIGHT && m->e.v.x<0.0f) 	m->e.v.x = 0.0f;
 }
 void Mario_EntityCollision(Mario* m,World* w,Entity* other,unsigned int x,unsigned int y,Side s){
 	if(m->dead) return;

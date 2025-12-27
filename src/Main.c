@@ -6,6 +6,7 @@
 #include "/home/codeleaded/System/Static/Library/Geometry.h"
 #include "/home/codeleaded/System/Static/Library/AudioPlayer.h"
 #include "/home/codeleaded/System/Static/Library/PS4_Controller.h"
+#include "/home/codeleaded/System/Static/Library/PPTX_Controller.h"
 
 #include "World.h"
 #include "Figure.h"
@@ -140,23 +141,27 @@ void Update(AlxWindow* w){
 		}
 
 		const signed int abs = PS4_Controller_Abs(&ps4c,PS4_CONTROLLER_LX);
-		if(Stroke(ALX_KEY_A).DOWN) 									Figure_Move(&world.mario,-1.0f);
-		else if(Stroke(ALX_KEY_D).DOWN) 							Figure_Move(&world.mario,1.0f);
+		if(Stroke(ALX_KEY_A).DOWN)
+			Figure_Move(&world.mario,-1.0f);
+		else if(Stroke(ALX_KEY_D).DOWN)
+			Figure_Move(&world.mario,1.0f);
 		else if(abs >= 0 && abs < 128) 								Figure_Move(&world.mario,F32_Map(abs,0.0f,255.0f,-1.0f,1.0f));
 		else if(abs >= 128) 										Figure_Move(&world.mario,F32_Map(abs,0.0f,255.0f,-1.0f,1.0f));
 		else 														Figure_Move(&world.mario,0.0f);
 		
-		if(world.mario.e->id==ENTITY_MARIO && ((Mario*)world.mario.e)->ground){
+		if(world.mario.e->id==ENTITY_MARIO){
 			if(Stroke(ALX_KEY_W).PRESSED || PS4_Controller_Key(&ps4c,PS4_CONTROLLER_X).PRESSED){
-				AudioPlayer_Add(&world.ap,"./data/Sound/Jump.wav");
-				world.mario.e->v.y = -MARIO_VEL_JP;
+				if(((Mario*)world.mario.e)->ground){
+					AudioPlayer_Add(&world.ap,"./data/Sound/Jump.wav");
+					world.mario.e->v.y = -MARIO_VEL_JP;
+				}
 			}
-		}
-		if(Stroke(ALX_KEY_W).DOWN || PS4_Controller_Key(&ps4c,PS4_CONTROLLER_X).DOWN){
-			//if(mario.v.y<0.0f)
-			if(world.mario.e->id==ENTITY_MARIO)
-				((Mario*)world.mario.e)->jumping = ENTITY_TRUE;
-			//else 				mario.jumping = ENTITY_FALSE;
+			if(Stroke(ALX_KEY_W).DOWN || PS4_Controller_Key(&ps4c,PS4_CONTROLLER_X).DOWN){
+				//if(mario.v.y<0.0f)
+				if(world.mario.e->id==ENTITY_MARIO)
+					((Mario*)world.mario.e)->jumping = ENTITY_TRUE;
+				//else 				mario.jumping = ENTITY_FALSE;
+			}
 		}
 		if(Stroke(ALX_KEY_S).PRESSED || PS4_Controller_Key(&ps4c,PS4_CONTROLLER_TRI).PRESSED){
 			//mario.e->v.y = MARIO_VEL_JP;
