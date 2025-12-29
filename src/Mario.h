@@ -64,6 +64,7 @@
 #define ENTITY_FIREBALL					16U
 #define ENTITY_FIREBEAM					17U
 #define ENTITY_HAMMER					18U
+#define ENTITY_POINTS					19U
 
 #define ENTITY_FALSE		            0
 #define ENTITY_TRUE			            1
@@ -157,6 +158,29 @@
 #define HAMMER_DIM_Y					0.9f
 #define HAMMER_VEL_X					11.0f
 #define HAMMER_VEL_Y					8.0f
+
+#define POINTS_DIM_X					0.9f
+#define POINTS_DIM_Y					0.9f
+#define POINTS_VEL_X					0.0f
+#define POINTS_VEL_Y					-15.0f
+#define POINTS_DESPAWN_MIN				1.0f
+#define POINTS_DESPAWN_MAX				3.0f
+#define POINTS_COIN						50U
+#define POINTS_FIREFLOWER				250U
+#define POINTS_SUPERSTAR				300U
+#define POINTS_BOWLER					25U
+#define POINTS_BOWSER					1000U
+#define POINTS_BRO						300U
+#define POINTS_COOPA					150U
+#define POINTS_FIREJUMPER				150U
+#define POINTS_FISH						150U
+#define POINTS_GUMBA					150U
+#define POINTS_LAKITU					150U
+#define POINTS_PLANTUG					150U
+#define POINTS_PLANT					150U
+#define POINTS_SPIKE					200U
+#define POINTS_SQUID					150U
+#define POINTS_WILLI					200U
 
 #define MARIO_ACC_GRAVITY	            30.0f
 #define MARIO_ACC_GRAVITY	            30.0f
@@ -2352,11 +2376,172 @@ Hammer* Hammer_New(Vec2 p){
 }
 
 
+typedef struct Points {
+	Entity e;
+	Sprite text;
+	unsigned int value;
+} Points;
+
+void Points_Free(Points* e){
+	Sprite_Free(&e->text);
+	Entity_Free(&e->e);
+}
+void Points_Update(Points* e,float t){
+	e->e.v = Vec2_Add(e->e.v,Vec2_Mulf(e->e.a,t));
+	e->e.r.p = Vec2_Add(e->e.r.p,Vec2_Mulf(e->e.v,t));
+}
+void Points_WorldCollision(Points* m,World* w){
+	if(m->e.r.p.x < -m->e.r.d.x) 		World_Remove(w,(Entity*)m);
+	else if(m->e.r.p.y < -m->e.r.d.y) 	World_Remove(w,(Entity*)m);
+	else if(m->e.r.p.x>w->width) 		World_Remove(w,(Entity*)m);
+	else if(m->e.r.p.y>w->height) 		World_Remove(w,(Entity*)m);
+}
+char Points_IsSolid(Points* m,World* w,unsigned int x,unsigned int y,Side s){
+	Block b = World_Get(w,x,y);
+	if(b==BLOCK_COIN)				return 0;
+	else if(b==BLOCK_FIRE_FLOWER)	return 0;
+	else if(b==BLOCK_SUPER_STAR) 	return 0;
+
+	switch(b){
+		case BLOCK_PODEST: 			return s==SIDE_TOP && m->e.v.y>0.0f;
+		case BLOCK_FENCE: 			return 0;
+		case BLOCK_CLOUD: 			return 0;
+		case BLOCK_BUSH: 			return 0;
+		case BLOCK_FLAG: 			return 0;
+		case BLOCK_CASTLE: 			return 0;
+		case BLOCK_GRASFAKE: 		return 0;
+		case BLOCK_TREE: 			return 0;
+		case BLOCK_SNOWTREE: 		return 0;
+		case BLOCK_BACKTREE: 		return s==SIDE_TOP && m->e.v.y>0.0f && World_Get(w,x,y - 1) == BLOCK_NONE;
+		case BLOCK_SPAWN:			return 0;
+		case BLOCK_SPAWN_BOWLER:	return 0;
+		case BLOCK_SPAWN_BOWSER:	return 0;
+		case BLOCK_SPAWN_BRO:		return 0;
+		case BLOCK_SPAWN_COOPA:		return 0;
+		case BLOCK_SPAWN_FIREJUMPER:return 0;
+		case BLOCK_SPAWN_FISH:		return 0;
+		case BLOCK_SPAWN_GUMBA:		return 0;
+		case BLOCK_SPAWN_LAKITU:	return 0;
+		case BLOCK_SPAWN_PLANT:		return 0;
+		case BLOCK_SPAWN_PLANTUG:	return 0;
+		case BLOCK_SPAWN_SPIKE:		return 0;
+		case BLOCK_SPAWN_SQUID:		return 0;
+		case BLOCK_SPAWN_WILLI:		return 0;
+		case BLOCK_SPAWN_EXPLOSION:	return 0;
+		case BLOCK_SPAWN_FIREBALL:	return 0;
+		case BLOCK_SPAWN_FIREBEAM:	return 0;
+		case BLOCK_SPAWN_HAMMER:	return 0;
+	}
+
+	return 1;
+}
+void Points_Collision(Points* m,World* w,unsigned int x,unsigned int y,Side s){
+	Block b = World_Get(w,x,y);
+
+	if(s==SIDE_TOP && m->e.v.y>0.0f)			World_Remove(w,(Entity*)m);
+	else if(s==SIDE_BOTTOM && m->e.v.y<0.0f)	World_Remove(w,(Entity*)m);
+	else if(s==SIDE_LEFT && m->e.v.x>0.0f) 		m->e.v.x *= -1.0f;
+	else if(s==SIDE_RIGHT && m->e.v.x<0.0f) 	m->e.v.x *= -1.0f;
+}
+void Points_EntityCollision(Points* m,World* w,Entity* other,unsigned int x,unsigned int y,Side s){
+	switch (other->id){
+		case ENTITY_BOWLER:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_BOWSER:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_BRO:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_COOPA:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_FISH:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_GUMBA:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_LAKITU:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_PLANT:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_PLANTUG:	{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_SPIKE:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_SQUID:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+		case ENTITY_WILLI:		{
+			World_Remove(w,(Entity*)m);
+			break;
+		}
+	}
+}
+void Points_UpdateSprite(Points* e,EntityAtlas* ea){
+	if(!e->text.img || e->text.h != ea->cy){
+		Sprite_Free(&e->text);
+		
+		const unsigned int dx = ea->atlas.w / ea->cx;
+		const unsigned int dy = ea->atlas.h / ea->cy;
+		const int digits = I64_Log10(e->value) + 1;
+
+		for(int i = 0;i<digits;i++){
+			const int digit = (e->value / U64_Pow10(digits - i - 1)) % 10;
+			const unsigned int ox = digit;
+			const unsigned int oy = 0U;
+			Sprite_AppendHSub(&e->text,SubSprite_New(&ea->atlas,ox * dx,oy * dy,dx,dy));
+		}
+	}
+}
+SubSprite Points_GetRender(Points* e,EntityAtlas* ea){
+	Points_UpdateSprite(e,ea);
+	return SubSprite_New(&e->text,0U,0U,e->text.w,e->text.w);
+}
+Points* Points_New(Vec2 p,unsigned int points){
+	Points b;
+	b.e.id = ENTITY_POINTS;
+	b.e.r = (Rect){ { p.x,p.y - (POINTS_DIM_Y - 1.0f)},{ POINTS_DIM_X,POINTS_DIM_Y } };
+	b.e.v = (Vec2){ -POINTS_VEL_X,POINTS_VEL_Y };
+	b.e.a = (Vec2){ 0.0f,MARIO_ACC_GRAVITY };
+	
+	b.e.WorldCollision = (void(*)(Entity*,World*))Points_WorldCollision;
+	b.e.IsSolid = (char(*)(Entity*,World*,unsigned int,unsigned int,Side))Points_IsSolid;
+	b.e.Collision = (void(*)(Entity*,World*,unsigned int,unsigned int,Side))Points_Collision;
+	b.e.EntityCollision = (void(*)(Entity*,World*,Entity*,unsigned int,unsigned int,Side))Points_EntityCollision;
+	
+	b.value = points;
+	b.text = Sprite_Null();
+
+	Points* hb = malloc(sizeof(Points));
+	memcpy(hb,&b,sizeof(Points));
+	return hb;
+}
+
+
 
 typedef struct Mario {
 	Entity e;
 	Vec2 spawn;
 	Timepoint start;
+	unsigned int score;
 	unsigned char lookdir;
 	unsigned char ground;
 	unsigned char jumping;
@@ -2464,6 +2649,11 @@ char Mario_IsSolid(Mario* m,World* w,unsigned int x,unsigned int y,Side s){
 	if(b==BLOCK_COIN){
 		AudioPlayer_Add(&((MarioWorld*)w)->ap,"./data/Sound/Coin.wav");
 		World_Set(w,x,y,BLOCK_NONE);
+		
+		//World_Spawn(w,ENTITY_POINTS,(Vec2){ x,y });
+		PVector_PPush(&w->entities,Points_New((Vec2){ x,y },POINTS_COIN));
+		m->score += POINTS_COIN;
+		
 		return 0;
 	//}else if(b==BLOCK_REDPILZ){
 	//	AudioPlayer_Add(&ap,"./data/Sound/upgrade.wav");
@@ -2480,6 +2670,10 @@ char Mario_IsSolid(Mario* m,World* w,unsigned int x,unsigned int y,Side s){
 	}else if(b==BLOCK_FIRE_FLOWER){
 		AudioPlayer_Add(&((MarioWorld*)w)->ap,"./data/Sound/Powerup.wav");
 		World_Set(w,x,y,BLOCK_NONE);
+		
+		PVector_PPush(&w->entities,Points_New((Vec2){ x,y },POINTS_FIREFLOWER));
+		m->score += POINTS_FIREFLOWER;
+		
 		m->power = 2;
         m->e.r.p.x -= MARIO_DIM_P2_X - m->e.r.d.x;
 		m->e.r.p.y -= MARIO_DIM_P2_Y - m->e.r.d.y;
@@ -2489,6 +2683,10 @@ char Mario_IsSolid(Mario* m,World* w,unsigned int x,unsigned int y,Side s){
 	}else if(b==BLOCK_SUPER_STAR){
 		AudioPlayer_Add(&((MarioWorld*)w)->ap,"./data/Sound/Powerup.wav");
 		World_Set(w,x,y,BLOCK_NONE);
+
+		PVector_PPush(&w->entities,Points_New((Vec2){ x,y },POINTS_SUPERSTAR));
+		m->score += POINTS_SUPERSTAR;
+		
 		//m->power = 3;
         //m->e.r.p.x -= MARIO_DIM_P3_X - m->e.r.d.x;
 		//m->e.r.p.y -= MARIO_DIM_P3_Y - m->e.r.d.y;
@@ -2752,6 +2950,7 @@ Mario* Mario_New(Vec2 p){
 	b.e.Collision = (void(*)(Entity*,World*,unsigned int,unsigned int,Side))Mario_Collision;
 	b.e.EntityCollision = (void(*)(Entity*,World*,Entity*,unsigned int,unsigned int,Side))Mario_EntityCollision;
 
+	b.score = 0UL;
 	b.spawn = p;
 	b.start = 0UL;
 	b.lookdir = ENTITY_RIGHT;
@@ -3681,7 +3880,17 @@ SubSprite MarioWorld_Hammer_Get(Animation* a,World* w,unsigned int x,unsigned in
 	
 	return SubSprite_New(&a->atlas_img,ox * dx,oy * dy,dx,dy);
 }
+SubSprite MarioWorld_Points_Get(Animation* a,World* w,unsigned int x,unsigned int y){
+	unsigned int ox = 0U;
+	unsigned int oy = 0U;
+	unsigned int dx = a->atlas_img.w /	a->atlas_cx;
+	unsigned int dy = a->atlas_img.h / a->atlas_cy;
 
+	//if(World_Get(w,x,y - 1) != BLOCK_ROCKET) 	ox = 0U;
+	//else 										ox = 1U;
+	
+	return SubSprite_New(&a->atlas_img,ox * dx,oy * dy,dx,dy);
+}
 
 MarioWorld MarioWorld_New(char* path_lvl,char* path_blocks,char* path_entities,char* path_shooters){
     MarioWorld mw;
@@ -3742,27 +3951,29 @@ MarioWorld MarioWorld_New(char* path_lvl,char* path_blocks,char* path_entities,c
 		    Animation_Make_AtlasPath(path_shooters,"Fireball.png",ANIMATIONBG_DG,ENTITY_FIREBALL,4,1,MarioWorld_Fireball_Get),
 		    Animation_Make_AtlasPath(path_shooters,"Firebeam.png",ANIMATIONBG_DG,ENTITY_FIREBEAM,8,1,MarioWorld_Firebeam_Get),
 		    Animation_Make_AtlasPath(path_shooters,"Hammer.png",ANIMATIONBG_DG,ENTITY_HAMMER,4,2,MarioWorld_Hammer_Get),
+		    Animation_Make_AtlasPath(path_shooters,"Points.png",ANIMATIONBG_DG,ENTITY_POINTS,10,1,MarioWorld_Points_Get),
 		    Animation_Null()
 	    },
         (EntityAtlas[]){
-		    EntityAtlas_New(path_entities,"Mario.png",16,12,	(void(*)(void*,const float))Mario_Update,		(SubSprite(*)(void*,EntityAtlas*))Mario_GetRender,		(void(*)(void*))Mario_Free),
-		    EntityAtlas_New(path_entities,"Bowler.png",5,3,		(void(*)(void*,const float))Bowler_Update,		(SubSprite(*)(void*,EntityAtlas*))Bowler_GetRender,		(void(*)(void*))Bowler_Free),
-		    EntityAtlas_New(path_entities,"Bowser.png",16,2,	(void(*)(void*,const float))Bowser_Update,		(SubSprite(*)(void*,EntityAtlas*))Bowser_GetRender,		(void(*)(void*))Bowser_Free),
-		    EntityAtlas_New(path_entities,"Bro.png",6,4,		(void(*)(void*,const float))Bro_Update,			(SubSprite(*)(void*,EntityAtlas*))Bro_GetRender,		(void(*)(void*))Bro_Free),
-		    EntityAtlas_New(path_entities,"Coopa.png",10,3,		(void(*)(void*,const float))Coopa_Update,		(SubSprite(*)(void*,EntityAtlas*))Coopa_GetRender,		(void(*)(void*))Coopa_Free),
-		    EntityAtlas_New(path_entities,"FireJumper.png",2,1,	(void(*)(void*,const float))FireJumper_Update,	(SubSprite(*)(void*,EntityAtlas*))FireJumper_GetRender,	(void(*)(void*))FireJumper_Free),
-		    EntityAtlas_New(path_entities,"Fish.png",4,3,		(void(*)(void*,const float))Fish_Update,		(SubSprite(*)(void*,EntityAtlas*))Fish_GetRender,		(void(*)(void*))Fish_Free),
-		    EntityAtlas_New(path_entities,"Gumba.png",3,3,		(void(*)(void*,const float))Gumba_Update,		(SubSprite(*)(void*,EntityAtlas*))Gumba_GetRender,		(void(*)(void*))Gumba_Free),
-		    EntityAtlas_New(path_entities,"Lakitu.png",3,2,		(void(*)(void*,const float))Lakitu_Update,		(SubSprite(*)(void*,EntityAtlas*))Lakitu_GetRender,		(void(*)(void*))Lakitu_Free),
-		    EntityAtlas_New(path_entities,"PlantUG.png",2,2,	(void(*)(void*,const float))PlantUG_Update,		(SubSprite(*)(void*,EntityAtlas*))PlantUG_GetRender,	(void(*)(void*))PlantUG_Free),
-		    EntityAtlas_New(path_entities,"Plant.png",2,2,		(void(*)(void*,const float))Plant_Update,		(SubSprite(*)(void*,EntityAtlas*))Plant_GetRender,		(void(*)(void*))Plant_Free),
-		    EntityAtlas_New(path_entities,"Spike.png",6,1,		(void(*)(void*,const float))Spike_Update,		(SubSprite(*)(void*,EntityAtlas*))Spike_GetRender,		(void(*)(void*))Spike_Free),
-		    EntityAtlas_New(path_entities,"Squid.png",2,2,		(void(*)(void*,const float))Squid_Update,		(SubSprite(*)(void*,EntityAtlas*))Squid_GetRender,		(void(*)(void*))Squid_Free),
-		    EntityAtlas_New(path_entities,"Willi.png",2,1,		(void(*)(void*,const float))Willi_Update,		(SubSprite(*)(void*,EntityAtlas*))Willi_GetRender,		(void(*)(void*))Willi_Free),
-		    EntityAtlas_New(path_shooters,"Explosion.png",3,1,	(void(*)(void*,const float))Explosion_Update,	(SubSprite(*)(void*,EntityAtlas*))Explosion_GetRender,	(void(*)(void*))Explosion_Free),
-		    EntityAtlas_New(path_shooters,"Fireball.png",4,1,	(void(*)(void*,const float))Fireball_Update,	(SubSprite(*)(void*,EntityAtlas*))Fireball_GetRender,	(void(*)(void*))Fireball_Free),
-		    EntityAtlas_New(path_shooters,"Firebeam.png",8,1,	(void(*)(void*,const float))Firebeam_Update,	(SubSprite(*)(void*,EntityAtlas*))Firebeam_GetRender,	(void(*)(void*))Firebeam_Free),
-		    EntityAtlas_New(path_shooters,"Hammer.png",4,2,		(void(*)(void*,const float))Hammer_Update,		(SubSprite(*)(void*,EntityAtlas*))Hammer_GetRender,		(void(*)(void*))Hammer_Free),
+		    EntityAtlas_New(path_entities,"Mario.png",16,12,				(void(*)(void*,const float))Mario_Update,		(SubSprite(*)(void*,EntityAtlas*))Mario_GetRender,		(void(*)(void*))Mario_Free),
+		    EntityAtlas_New(path_entities,"Bowler.png",5,3,					(void(*)(void*,const float))Bowler_Update,		(SubSprite(*)(void*,EntityAtlas*))Bowler_GetRender,		(void(*)(void*))Bowler_Free),
+		    EntityAtlas_New(path_entities,"Bowser.png",16,2,				(void(*)(void*,const float))Bowser_Update,		(SubSprite(*)(void*,EntityAtlas*))Bowser_GetRender,		(void(*)(void*))Bowser_Free),
+		    EntityAtlas_New(path_entities,"Bro.png",6,4,					(void(*)(void*,const float))Bro_Update,			(SubSprite(*)(void*,EntityAtlas*))Bro_GetRender,		(void(*)(void*))Bro_Free),
+		    EntityAtlas_New(path_entities,"Coopa.png",10,3,					(void(*)(void*,const float))Coopa_Update,		(SubSprite(*)(void*,EntityAtlas*))Coopa_GetRender,		(void(*)(void*))Coopa_Free),
+		    EntityAtlas_New(path_entities,"FireJumper.png",2,1,				(void(*)(void*,const float))FireJumper_Update,	(SubSprite(*)(void*,EntityAtlas*))FireJumper_GetRender,	(void(*)(void*))FireJumper_Free),
+		    EntityAtlas_New(path_entities,"Fish.png",4,3,					(void(*)(void*,const float))Fish_Update,		(SubSprite(*)(void*,EntityAtlas*))Fish_GetRender,		(void(*)(void*))Fish_Free),
+		    EntityAtlas_New(path_entities,"Gumba.png",3,3,					(void(*)(void*,const float))Gumba_Update,		(SubSprite(*)(void*,EntityAtlas*))Gumba_GetRender,		(void(*)(void*))Gumba_Free),
+		    EntityAtlas_New(path_entities,"Lakitu.png",3,2,					(void(*)(void*,const float))Lakitu_Update,		(SubSprite(*)(void*,EntityAtlas*))Lakitu_GetRender,		(void(*)(void*))Lakitu_Free),
+		    EntityAtlas_New(path_entities,"PlantUG.png",2,2,				(void(*)(void*,const float))PlantUG_Update,		(SubSprite(*)(void*,EntityAtlas*))PlantUG_GetRender,	(void(*)(void*))PlantUG_Free),
+		    EntityAtlas_New(path_entities,"Plant.png",2,2,					(void(*)(void*,const float))Plant_Update,		(SubSprite(*)(void*,EntityAtlas*))Plant_GetRender,		(void(*)(void*))Plant_Free),
+		    EntityAtlas_New(path_entities,"Spike.png",6,1,					(void(*)(void*,const float))Spike_Update,		(SubSprite(*)(void*,EntityAtlas*))Spike_GetRender,		(void(*)(void*))Spike_Free),
+		    EntityAtlas_New(path_entities,"Squid.png",2,2,					(void(*)(void*,const float))Squid_Update,		(SubSprite(*)(void*,EntityAtlas*))Squid_GetRender,		(void(*)(void*))Squid_Free),
+		    EntityAtlas_New(path_entities,"Willi.png",2,1,					(void(*)(void*,const float))Willi_Update,		(SubSprite(*)(void*,EntityAtlas*))Willi_GetRender,		(void(*)(void*))Willi_Free),
+		    EntityAtlas_New(path_shooters,"Explosion.png",3,1,				(void(*)(void*,const float))Explosion_Update,	(SubSprite(*)(void*,EntityAtlas*))Explosion_GetRender,	(void(*)(void*))Explosion_Free),
+		    EntityAtlas_New(path_shooters,"Fireball.png",4,1,				(void(*)(void*,const float))Fireball_Update,	(SubSprite(*)(void*,EntityAtlas*))Fireball_GetRender,	(void(*)(void*))Fireball_Free),
+		    EntityAtlas_New(path_shooters,"Firebeam.png",8,1,				(void(*)(void*,const float))Firebeam_Update,	(SubSprite(*)(void*,EntityAtlas*))Firebeam_GetRender,	(void(*)(void*))Firebeam_Free),
+		    EntityAtlas_New(path_shooters,"Hammer.png",4,2,					(void(*)(void*,const float))Hammer_Update,		(SubSprite(*)(void*,EntityAtlas*))Hammer_GetRender,		(void(*)(void*))Hammer_Free),
+		    EntityAtlas_Make(path_shooters,"Points.png",10,1,0.35f,0.35f,	(void(*)(void*,const float))Points_Update,		(SubSprite(*)(void*,EntityAtlas*))Points_GetRender,		(void(*)(void*))Points_Free),
 		    EntityAtlas_Null()
 	    }
     );

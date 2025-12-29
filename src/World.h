@@ -318,6 +318,8 @@ typedef struct EntityAtlas {
 	Sprite atlas;
 	unsigned int cx;
 	unsigned int cy;
+	float sx;
+	float sy;
 	void (*Update)(void*,float);
 	SubSprite (*GetRender)(void*,struct EntityAtlas*);
 	void (*Free)(void*);
@@ -340,6 +342,34 @@ EntityAtlas EntityAtlas_New(
 
 	ea.cx = cx;
 	ea.cy = cy;
+	ea.sx = 1.0f;
+	ea.sy = 1.0f;
+	ea.Update = Update;
+	ea.GetRender = GetRender;
+	ea.Free = Free;
+	return ea;
+}
+EntityAtlas EntityAtlas_Make(
+	char* path,
+	char* file,
+	unsigned int cx,
+	unsigned int cy,
+	float sx,
+	float sy,
+	void (*Update)(void*,float),
+	SubSprite (*GetRender)(void*,EntityAtlas*),
+	void (*Free)(void*)
+){
+	EntityAtlas ea;
+	
+	CStr fullpath = CStr_Concat(path,file);
+	ea.atlas = Sprite_Load(fullpath);
+	CStr_Free(&fullpath);
+
+	ea.cx = cx;
+	ea.cy = cy;
+	ea.sx = sx;
+	ea.sy = sy;
 	ea.Update = Update;
 	ea.GetRender = GetRender;
 	ea.Free = Free;
@@ -356,8 +386,8 @@ EntityAtlas EntityAtlas_Null(){
 	return ea;
 }
 void EntityAtlas_Resize(EntityAtlas* ea,int width,int height){
-	unsigned int dx = ea->cx * width;
-	unsigned int dy = ea->cy * height;
+	unsigned int dx = (unsigned int)((float)(ea->cx * width) * ea->sx);
+	unsigned int dy = (unsigned int)((float)(ea->cy * height) * ea->sy);
 	Sprite_Reload(&ea->atlas,dx,dy);
 }
 void EntityAtlas_Free(EntityAtlas* ea){
@@ -529,10 +559,12 @@ void* World_Spawn(World* w,SpawnType st,Vec2 p){
 	unsigned int size = 0U;
 	void* e = w->Spawner(p,st,&size);
 	if(e){
-		PVector_Push(&w->entities,e,size);
-		free(e);
-		void* ret = PVector_Get(&w->entities,w->entities.size - 1);	
-		return ret;
+		PVector_PPush(&w->entities,e);
+		//PVector_Push(&w->entities,e,size);
+		//free(e);
+		//void* ret = PVector_Get(&w->entities,w->entities.size - 1);	
+		//return ret;
+		return e;
 	}
 	return NULL;
 }
