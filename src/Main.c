@@ -16,7 +16,7 @@ MarioWorld world;
 PS4_Controller ps4c;
 
 void Setup(AlxWindow* w){
-	AlxFont_Resize(&window.AlxFont,16,16);
+	AlxFont_Resize(&window.AlxFont,32,32);
 
 	ps4c = PS4_Controller_New("/dev/input/by-id/usb-Sony_Interactive_Entertainment_Wireless_Controller-if03-event-joystick");
 	world = MarioWorld_New("./data/World/Level0.txt","./data/Blocks/","./data/Entity/","./data/Shooters/");
@@ -260,9 +260,10 @@ void Update(AlxWindow* w){
 		}
 	}
 
-	String str = String_Format("S:%d,%d | L:%d",window.Width,window.Height,world.level);
-	CStr_RenderSizeAlxFont(WINDOW_STD_ARGS,&window.AlxFont,str.Memory,str.size,0.0f,0.0f,WHITE);
-	String_Free(&str);
+	CStr_RenderAlxFontf(WINDOW_STD_ARGS,&window.AlxFont,0.0f,0.0f,WHITE,"S:%d,%d | L:%d",window.Width,window.Height,world.level);
+	
+	if(world.mario.e->id==ENTITY_MARIO)
+		CStr_RenderAlxFontf(WINDOW_STD_ARGS,&window.AlxFont,0.0f,window.AlxFont.CharSizeY,WHITE,"Score: %d",(Number)((Mario*)world.mario.e)->score);
 }
 void Delete(AlxWindow* w){
 	MarioWorld_Free(&world);
@@ -270,7 +271,7 @@ void Delete(AlxWindow* w){
 }
 
 int main(){
-    if(Create("Mario",1920,1080,1,1,Setup,Update,Delete))
+    if(Create("Mario NES",1920,1080,1,1,Setup,Update,Delete))
         Start();
     return 0;
 }
