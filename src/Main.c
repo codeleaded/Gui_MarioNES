@@ -19,7 +19,7 @@ void Setup(AlxWindow* w){
 	AlxFont_Resize(&window.AlxFont,32,32);
 
 	ps4c = PS4_Controller_New("/dev/input/by-id/usb-Sony_Interactive_Entertainment_Wireless_Controller-if03-event-joystick");
-	world = MarioWorld_New("./data/World/Level0.txt","./data/Blocks/","./data/Entity/","./data/Shooters/");
+	world = MarioWorld_New("./assets/World/Level0.txt","./assets/Blocks/","./assets/Entity/","./assets/Shooters/");
 	MarioWorld_AudioPlayerStart(&world);
 }
 void Update(AlxWindow* w){
@@ -53,18 +53,18 @@ void Update(AlxWindow* w){
 		}
 	}
 	if(Stroke(ALX_KEY_9).PRESSED){
-		CStr path = CStr_Format("./data/World/Level%d.txt",world.level);
+		CStr path = CStr_Format("./assets/World/Level%d.txt",world.level);
 		World_Load(&world.world,path,BLOCK_SPAWN,MarioWorld_Std_Mapper);
 		CStr_Free(&path);
 	}
 	if(Stroke(ALX_KEY_0).PRESSED){
-		CStr path = CStr_Format("./data/World/Level%d.txt",world.level);
+		CStr path = CStr_Format("./assets/World/Level%d.txt",world.level);
 		World_Save(&world.world,path,MarioWorld_Std_MapperR);
 		CStr_Free(&path);
 	}
 
 	if(Stroke(ALX_KEY_Y).PRESSED){
-		//CStr path = CStr_Format("./data/World/Level%d.txt",level);
+		//CStr path = CStr_Format("./assets/World/Level%d.txt",level);
 		//World_Load(&world,path,World_Std_Mapper);
 		//CStr_Free(&path);
 		
@@ -93,7 +93,7 @@ void Update(AlxWindow* w){
 				const Vec2 mp = Vec2_Add(world.mario.e->r.p,Vec2_Mulf(world.mario.e->r.d,0.5f));
 				const Vec2 off = { world.mario.e->r.d.x,0.0f };
 
-				AudioPlayer_Add(&world.ap,"./data/Sound/Fireball.wav");
+				AudioPlayer_Add(&world.ap,"./assets/Sound/Fireball.wav");
 				Hammer* fb = (Hammer*)World_Spawn(
 					&world.world,
 					ENTITY_HAMMER,
@@ -118,7 +118,7 @@ void Update(AlxWindow* w){
 				const Vec2 mp = Vec2_Add(world.mario.e->r.p,Vec2_Mulf(world.mario.e->r.d,0.5f));
 				const Vec2 off = { world.mario.e->r.d.x,0.0f };
 
-				AudioPlayer_Add(&world.ap,"./data/Sound/Fireball.wav");
+				AudioPlayer_Add(&world.ap,"./assets/Sound/Fireball.wav");
 				Fireball* fb = (Fireball*)World_Spawn(
 					&world.world,
 					ENTITY_FIREBALL,
@@ -152,7 +152,7 @@ void Update(AlxWindow* w){
 		if(world.mario.e->id==ENTITY_MARIO){
 			if(Stroke(ALX_KEY_W).PRESSED || PS4_Controller_Key(&ps4c,PS4_CONTROLLER_X).PRESSED){
 				if(((Mario*)world.mario.e)->ground){
-					AudioPlayer_Add(&world.ap,"./data/Sound/Jump.wav");
+					AudioPlayer_Add(&world.ap,"./assets/Sound/Jump.wav");
 					world.mario.e->v.y = -MARIO_VEL_JP;
 				}
 			}
