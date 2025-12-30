@@ -426,7 +426,7 @@ typedef struct World{
 	void* (*Spawner)(Vec2,SpawnType,unsigned int*);
 	AnimationBg mode;
 	Vec2 spawn;
-	Block* data;
+	Block* assets;
 	unsigned short width;
 	unsigned short height;
 } World;
@@ -437,21 +437,21 @@ World World_New(unsigned short width,unsigned short height){
 	w.entityatlas = Vector_New(sizeof(EntityAtlas));
 	w.entities = PVector_New();
 	w.mode = ANIMATIONBG_ALL;
-	if(width * height > 0U) w.data = (Block*)malloc(sizeof(Block) * width * height);
-	else 					w.data = NULL;
+	if(width * height > 0U) w.assets = (Block*)malloc(sizeof(Block) * width * height);
+	else 					w.assets = NULL;
 	w.width = width;
 	w.height = height;
 	return w;
 }
 void World_Load(World* w,char* Path,Block spawner,Block (*MapperFunc)(char)){
 	FilesSize size;
-	char* data = Files_ReadB(Path,&size);
+	char* assets = Files_ReadB(Path,&size);
 
-	int width = CStr_Find(data,'\n');
-	int height = CStr_CountOf(data,'\n');
+	int width = CStr_Find(assets,'\n');
+	int height = CStr_CountOf(assets,'\n');
 
-	if(w->data) free(w->data);
-	w->data = (Block*)malloc(sizeof(Block) * width * height);
+	if(w->assets) free(w->assets);
+	w->assets = (Block*)malloc(sizeof(Block) * width * height);
 	w->width = width;
 	w->height = height;
 
@@ -460,13 +460,13 @@ void World_Load(World* w,char* Path,Block spawner,Block (*MapperFunc)(char)){
 		int x = i - y * (width + 1);
 		int j = y * width + x;
 
-		w->data[j] = MapperFunc(data[i]);
+		w->assets[j] = MapperFunc(assets[i]);
 	}
 
 	w->spawn = (Vec2){ 0.0f,0.0f };
 	for(int y = 0;y<w->height;y++){
 		for(int x = 0;x<w->width;x++){
-			Block b = w->data[y * w->width + x];
+			Block b = w->assets[y * w->width + x];
 			
 			if(spawner == b){
 				w->spawn.x = x;
@@ -478,19 +478,19 @@ void World_Load(World* w,char* Path,Block spawner,Block (*MapperFunc)(char)){
 void World_Save(World* w,char* Path,char (*MapperFunc)(Block)){
 	// + 1 for newline char
 	FilesSize size = (sizeof(char) * w->width + 1) * w->height;
-	char* data = (char*)malloc(size);
+	char* assets = (char*)malloc(size);
 
 	for(unsigned int y = 0;y<w->height;y++){
 		for(unsigned int x = 0;x<w->width;x++){
 			int dst = y * (w->width + 1) + x;
 			int src = y * w->width + x;
-			data[dst] = MapperFunc(w->data[src]);
+			assets[dst] = MapperFunc(w->assets[src]);
 		}
-		data[(y + 1) * (w->width + 1) - 1] = '\n';
+		assets[(y + 1) * (w->width + 1) - 1] = '\n';
 	}
 
-	Files_Write(Path,data,size);
-	free(data);
+	Files_Write(Path,assets,size);
+	free(assets);
 }
 void World_Start(World* w,void* (*Spawner)(Vec2,SpawnType,unsigned int*)){
 	w->Spawner = Spawner;
@@ -505,7 +505,7 @@ void World_Start(World* w,void* (*Spawner)(Vec2,SpawnType,unsigned int*)){
 	if(w->Spawner){
 		for(int y = 0;y<w->height;y++){
 			for(int x = 0;x<w->width;x++){
-				Block b = w->data[y * w->width + x];
+				Block b = w->assets[y * w->width + x];
 				Animation* a = (Animation*)Vector_Get(&w->animations,b - 1);
 
 				if(a && a->spawner > 0U){
@@ -514,7 +514,7 @@ void World_Start(World* w,void* (*Spawner)(Vec2,SpawnType,unsigned int*)){
 					if(e){
 						PVector_Push(&w->entities,e,size);
 						free(e);
-						//w->data[y * w->width + x] = BLOCK_NONE;
+						//w->assets[y * w->width + x] = BLOCK_NONE;
 					}
 				}
 			}
@@ -536,7 +536,7 @@ World World_Make(char* Path,Block spawner,Block (*MapperFunc)(char c),void* (*Sp
 	return w;
 }
 Block World_Get(World* w,unsigned int x,unsigned int y){
-	if(x<w->width && y<w->height) return w->data[y * w->width + x];
+	if(x<w->width && y<w->height) return w->assets[y * w->width + x];
 	return BLOCK_BOUNDS;
 }
 unsigned char World_GetNeigbours(World* w,Block b,unsigned int x,unsigned int y){
@@ -553,7 +553,7 @@ unsigned char World_GetNeigbours(World* w,Block b,unsigned int x,unsigned int y)
 }
 void World_Set(World* w,unsigned int x,unsigned int y,Block b){
 	if(x<w->width && y<w->height)
-		w->data[y * w->width + x] = b;
+		w->assets[y * w->width + x] = b;
 }
 void* World_Spawn(World* w,SpawnType st,Vec2 p){
 	unsigned int size = 0U;
@@ -580,21 +580,21 @@ void World_Remove(World* w,Entity* e){
 	}
 }
 void World_Resize(World* w,unsigned int width,unsigned int height){
-	if(w->data){
+	if(w->assets){
 		const unsigned int size = sizeof(Block) * width * height;
-		Block* data = (Block*)malloc(size);
-		memset(data,0,size);
+		Block* assets = (Block*)malloc(size);
+		memset(assets,0,size);
 	
 		const unsigned int cpywidth = I64_Min(w->width,width);
 		const unsigned int cpyheight = I64_Min(w->height,height);
 		for(int y = 0;y<cpyheight;y++){
-			memcpy(data + y * width,w->data + y * w->width,sizeof(Block) * cpywidth);
+			memcpy(assets + y * width,w->assets + y * w->width,sizeof(Block) * cpywidth);
 		}
 
 		w->width = width;
 		w->height = height;
-		free(w->data);
-		w->data = data;
+		free(w->assets);
+		w->assets = assets;
 	}
 }
 char World_isBlock(World* w,Block b){
@@ -816,8 +816,8 @@ void World_Free(World* w){
 	}
 	Vector_Free(&w->animations);
 	
-	if(w->data) free(w->data);
-	w->data = NULL;
+	if(w->assets) free(w->assets);
+	w->assets = NULL;
 }
 
 #endif
