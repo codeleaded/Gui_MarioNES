@@ -2991,6 +2991,7 @@ Block MarioWorld_Std_Mapper(char c){
 		case '-':	return BLOCK_GRASFAKE;
 		case '(':	return BLOCK_TREE;
 		case ')':	return BLOCK_SNOWTREE;
+		case '[':	return BLOCK_BACKTREE;
 		case 'R':	return BLOCK_ROCKET;
 		case '%':	return BLOCK_SPAWN;
 		case 'B':	return BLOCK_SPAWN_BOWLER;
